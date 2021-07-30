@@ -19,11 +19,6 @@ function useAccesstoken() {
       method: "POST",
     })
       .then((response) => {
-        console.log(
-          "🚀 ~ file: useAccesstoken.js ~ line 22 ~ .then ~ response",
-          response
-        );
-
         setdata(response.data.access_token);
       })
 
