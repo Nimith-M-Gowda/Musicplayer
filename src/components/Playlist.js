@@ -1,49 +1,125 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 function Playlist() {
-  const [accessToken, setAccessToken] = useState("");
+  const [authorizeCode, setAuthorizecode] = useState("");
   const [accessURL, setAccessURL] = useState("");
+  const [refreshtoken, setRefreshtoken] = useState("");
+  const [accessToken, setaccessToken] = useState("");
+  const [playlist, setPlaylist] = useState("");
 
   useEffect(() => {
-    console.log("the accesstoken is", accessToken);
     getTokenfromWindowhref();
-  }, [accessToken, accessURL]);
+    console.log(
+      "🚀 ~ file: Playlist.js ~ line 12 ~ Playlist ~ authorizeCode",
+      authorizeCode
+    );
+  }, [authorizeCode, accessURL]);
 
+  useEffect(() => {
+    console.log("inside useEffect refreshtoken", refreshtoken);
+    if (refreshtoken) {
+      getaccessToken();
+    }
+  }, [refreshtoken]);
+
+  useEffect(() => {
+    console.log("access Token is", accessToken);
+  }, [accessToken]);
+
+  useEffect(() => {
+    console.log("playslist is ", playlist);
+  }, [playlist]);
   const getTokenfromWindowhref = async () => {
-    const TokenMatch = window.location.href.match(/access_token=([^&]*)/);
+    console.log("inside getTokenfromWindowhref");
+    const TokenMatch = window.location.href.match(/code=([^&]*)/);
     if (TokenMatch) {
-      await setAccessToken(TokenMatch[1]);
+      await setAuthorizecode(TokenMatch[1]);
+      if (!refreshtoken) {
+        getrefreshtoken();
+      }
       return TokenMatch;
     }
-    setAccessToken("");
+    setAuthorizecode("");
     return;
   };
 
-  const getAuthorizeToken = () => {
-    if (accessToken) {
-      setAccessToken(accessToken);
+  const getrefreshtoken = () => {
+    fetch("https://accounts.spotify.com/api/token", {
+      body: `client_id=${process.env.REACT_APP_CLIENT_ID}&client_secret=${process.env.REACT_APP_CLIENT_SECRET}&grant_type=authorization_code&code=${authorizeCode}&redirect_uri=${process.env.REACT_APP_REDIRECT_URL}`,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      method: "POST",
+    })
+      .then((res) => res.json())
+      .then((result) => setRefreshtoken(result.refresh_token))
+      .catch((err) => console.log(err));
+  };
+
+  const getPlayList = async () => {
+    fetch("https://api.spotify.com/v1/me/playlists", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      method: "GET",
+    })
+      .then((res) => res.json())
+      .then((result) => setPlaylist(result.items))
+      .catch((err) => console.log(err));
+  };
+
+  const getaccessToken = () => {
+    fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization:
+          "Basic " +
+          btoa(
+            process.env.REACT_APP_CLIENT_ID +
+              ":" +
+              process.env.REACT_APP_CLIENT_SECRET
+          ),
+      },
+      body: `grant_type=refresh_token&refresh_token=${refreshtoken}`,
+    })
+      .then((res) => res.json())
+      .then((result) => setaccessToken(result.access_token))
+      .catch((err) => console.log(err));
+  };
+
+  const getAuthorizeCode = () => {
+    if (authorizeCode) {
+      console.group("inside IF ");
+      setAuthorizecode(authorizeCode);
     } else {
+      console.group("inside else ");
       getTokenfromWindowhref();
-      if (accessToken) {
-        console.group("inside func IF ");
+      if (authorizeCode) {
+        console.group("inside IF 2");
       } else {
-        const url = `https://accounts.spotify.com/authorize?client_id=${process.env.REACT_APP_CLIENT_ID}&response_type=token&scope=playlist-modify-public&redirect_uri=${process.env.REACT_APP_REDIRECT_URL}`;
+        console.group("inside else 2 ");
+        const url = `https://accounts.spotify.com/authorize?client_id=${process.env.REACT_APP_CLIENT_ID}&response_type=code&scope=playlist-modify-public&redirect_uri=${process.env.REACT_APP_REDIRECT_URL}`;
         setAccessURL(url);
         window.location.href = url;
       }
     }
   };
   {
-    return !!accessToken ? (
+    return !!authorizeCode ? (
       <div>
         {" "}
-        <button>You are now connected to Spotify</button>
+        <div>
+          <button>You are now connected to Spotify</button>
+        </div>
+        <button onClick={() => getPlayList()}>Pull the playlist NOW</button>
       </div>
     ) : (
       <div>
         <button
           onClick={() => {
-            getAuthorizeToken();
+            getAuthorizeCode(authorizeCode);
           }}
         >
           Connect to Spotify and get playlist{" "}
