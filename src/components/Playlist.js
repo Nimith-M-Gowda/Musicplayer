@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import PlaylistCard from "./PlaylistCard";
 
 function Playlist() {
   const [authorizeCode, setAuthorizecode] = useState("");
@@ -10,6 +10,7 @@ function Playlist() {
 
   useEffect(() => {
     getTokenfromWindowhref();
+
     console.log(
       "🚀 ~ file: Playlist.js ~ line 12 ~ Playlist ~ authorizeCode",
       authorizeCode
@@ -35,7 +36,9 @@ function Playlist() {
     const TokenMatch = window.location.href.match(/code=([^&]*)/);
     if (TokenMatch) {
       await setAuthorizecode(TokenMatch[1]);
+
       if (!refreshtoken) {
+        console.log("refreshtoken in getTokenfromWindowhref", refreshtoken);
         getrefreshtoken();
       }
       return TokenMatch;
@@ -89,6 +92,19 @@ function Playlist() {
       .catch((err) => console.log(err));
   };
 
+  const renderPlaylist = (playlist) => {
+    return playlist.map((data, item) => (
+      <div>
+        <PlaylistCard
+          key={item}
+          image={data.images[0].url}
+          name={data.name}
+          numberOfTracks={data.tracks.total}
+        />
+      </div>
+    ));
+  };
+
   const getAuthorizeCode = () => {
     if (authorizeCode) {
       console.group("inside IF ");
@@ -114,6 +130,7 @@ function Playlist() {
           <button>You are now connected to Spotify</button>
         </div>
         <button onClick={() => getPlayList()}>Pull the playlist NOW</button>
+        {playlist && renderPlaylist(playlist)}
       </div>
     ) : (
       <div>
