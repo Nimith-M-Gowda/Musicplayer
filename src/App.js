@@ -6,6 +6,7 @@ import Form from "./components/Form";
 import useAccesstoken from "./hooks/useAccesstoken";
 import Cards from "./components/Cards";
 import Modals from "./components/Modals";
+import Playlist from "./components/Playlist";
 
 function App() {
   const [accesstoken, setAccesstoken] = useState("");
@@ -70,6 +71,7 @@ function App() {
   ) : (
     <div className="App">
       <Form setSearchterm={setSearchterm} />
+      <Playlist />
       {searchResults && renderResults(searchResults)}
     </div>
   );
