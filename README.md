@@ -1,5 +1,5 @@
 
-### App that can help us to search ARTISTS and view popular tracks of that particular artist
+### App that can help us to search ARTISTS and view the popular tracks of that particular artist
 
 
 |--------------------------------------------------------------|
